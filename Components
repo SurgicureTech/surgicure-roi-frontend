@@ -1,0 +1,42 @@
+import { useState } from 'react';
+
+export default function ROIForm({ onResult }) {
+  const [beds, setBeds] = useState(250);
+  const [useDefaults, setUseDefaults] = useState(true);
+  const [efficacy, setEfficacy] = useState('25%');
+  const [loading, setLoading] = useState(false);
+
+  const submitForm = async () => {
+    setLoading(true);
+    const res = await fetch('/api/roi', {
+      method: 'POST',
+      body: JSON.stringify({
+        hospitalBeds: beds,
+        useNationalDefaults: useDefaults,
+        efficacy,
+      }),
+    });
+    const data = await res.json();
+    onResult(data.result);
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ marginTop: '1rem' }}>
+      <label>Total Hospital Beds</label><br />
+      <input type="number" value={beds} onChange={(e) => setBeds(Number(e.target.value))} /><br />
+      <label>
+        <input type="checkbox" checked={useDefaults} onChange={() => setUseDefaults(!useDefaults)} />
+        Use National Averages
+      </label><br />
+      <label>Efficacy Scenario</label><br />
+      <select value={efficacy} onChange={(e) => setEfficacy(e.target.value)}>
+        <option value="25%">25%</option>
+        <option value="75%">75%</option>
+      </select><br />
+      <button onClick={submitForm} disabled={loading} style={{ marginTop: '1rem' }}>
+        {loading ? 'Calculating...' : 'Run ROI Model'}
+      </button>
+    </div>
+  );
+}  
